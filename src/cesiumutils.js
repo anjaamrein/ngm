@@ -144,9 +144,10 @@ export function convertCartographicToScreenCoordinates(scene, cartographicPositi
  * @param {import('cesium/Source/Scene/Scene.js').default} scene
  * @param {Cartographic} position
  * @param {'lv95' | 'wsg84'} coordinatesType
+ * @param {boolean} useAltitude
  * @return {{x: number, y: number, height: number}}
  */
-export function prepareCoordinatesForUi(scene, position, coordinatesType) {
+export function prepareCoordinatesForUi(scene, position, coordinatesType, useAltitude = false) {
   let x, y;
   const lon = CMath.toDegrees(position.longitude);
   const lat = CMath.toDegrees(position.latitude);
@@ -158,8 +159,10 @@ export function prepareCoordinatesForUi(scene, position, coordinatesType) {
     x = Number(lon.toFixed(6));
     y = Number(lat.toFixed(6));
   }
-  let altitude = scene.globe.getHeight(position);
-  altitude = altitude ? altitude : 0;
+  let altitude = 0;
+  if (useAltitude) {
+    altitude = scene.globe.getHeight(position) || 0;
+  }
   const height = Math.round(position.height - altitude);
   return {x, y, height};
 }
@@ -217,4 +220,27 @@ export function cartesianToDegrees(cartesian) {
     cartographic.latitude * 180 / Math.PI,
     cartographic.height
   ];
+}
+
+/**
+ * Extend kml for export with entities properties
+ * @param {string} kml - kml for export
+ * @param {Array<Entity>} entities - list of entities for export
+ * @return {string}
+ */
+export function extendKmlWithProperties(kml, entities) {
+  entities.values.forEach(entity => {
+    let kmlProperties = '<ExtendedData>';
+    entity.properties.propertyNames.forEach(prop => {
+      let value = entity.properties[prop] ? entity.properties[prop].getValue() : undefined;
+      if (value !== undefined && value !== null) {
+        value = typeof value === 'object' ? JSON.stringify(value) : value;
+        kmlProperties += `<Data name="${prop}"><value>${value}</value></Data>`;
+      }
+    });
+    kmlProperties += '</ExtendedData>';
+    const placemark = `<Placemark id="${entity.id}">`;
+    kml = kml.replace(placemark, `${placemark}${kmlProperties}`);
+  });
+  return kml;
 }
