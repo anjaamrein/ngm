@@ -24,8 +24,8 @@ export RELEASES_BUCKET="ngmpub-review-bgdi-ch" # FIXME: create a dedicated bucke
 
 ### Listing content of a bucket:
 export AWS_REGION=eu-west-1
-export AWS_ACCESS_KEY_ID=$(gopass show ngm/s3/deploybucket/AWS_ACCESS_KEY_ID)
-export AWS_SECRET_ACCESS_KEY=$(gopass show ngm/s3/deploybucket/AWS_SECRET_ACCESS_KEY)
+export AWS_ACCESS_KEY_ID=$(gopass cat ngm/s3/deploybucket/AWS_ACCESS_KEY_ID)
+export AWS_SECRET_ACCESS_KEY=$(gopass cat ngm/s3/deploybucket/AWS_SECRET_ACCESS_KEY)
 aws s3 ls s3://$INT_BUCKET
 
 ## Deployments
